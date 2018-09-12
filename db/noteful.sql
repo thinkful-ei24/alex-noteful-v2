@@ -37,3 +37,8 @@ INNER JOIN folders ON notes.folder_id = folders.id;
 -- get all notes, show folders if they exists otherwise null
 SELECT * FROM notes
 LEFT JOIN folders ON notes.folder_id = folders.id;
+
+-- get all notes, show folders if they exists otherwise null
+SELECT * FROM notes
+LEFT JOIN folders ON notes.folder_id = folders.id;
+WHERE notes.id = 1005; 
