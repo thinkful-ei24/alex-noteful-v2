@@ -22,6 +22,16 @@ INSERT INTO folders (name) VALUES
   folder_id int REFERENCES folders(id) ON DELETE SET NULL
 ); 
 
+CREATE TABLE tags (
+  id serial PRIMARY KEY,
+  name text NOT NULL UNIQUE
+);
+
+CREATE TABLE notes_tags (
+  note_id INTEGER NOT NULL REFERENCES notes ON DELETE CASCADE,
+  tag_id INTEGER NOT NULL REFERENCES tags ON DELETE CASCADE
+);
+
 INSERT INTO notes (title, content, folder_id) VALUES
   (
     '5 life lessons learned from cats',
@@ -74,16 +84,8 @@ INSERT INTO notes (title, content, folder_id) VALUES
   , NULL
   ); 
 
-  -- get all notes with folders
-  \x 
--- SELECT * FROM notes
--- INNER JOIN folders ON notes.folder_id = folders.id; 
+INSERT INTO tags (name) VALUES ('test name'), ('test 2'), ('test 3');
+INSERT INTO notes_tags (note_id, tag_id) VALUES (1, 1), (2, 2);
 
--- -- get all notes, show folders if they exists otherwise null
--- SELECT * FROM notes
--- LEFT JOIN folders ON notes.folder_id = folders.id;
 
--- -- get all notes, show folders if they exists otherwise null
--- SELECT * FROM notes
--- LEFT JOIN folders ON notes.folder_id = folders.id;
--- WHERE notes.id = 1005; 
+
