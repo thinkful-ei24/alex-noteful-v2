@@ -62,11 +62,12 @@ router.post('/', (req, res, next) => {
   }
 
   // post
-  knex('folders')
+  knex
     .insert(newObj)
-    .returning('name')
+    .into('folders')
+    .returning(['id', 'name'])
     .then(results => {
-      res.json(results);
+      res.json(results[0]);
     })
     .catch(err => {
       next(err);
