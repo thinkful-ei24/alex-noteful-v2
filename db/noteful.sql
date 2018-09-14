@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS notes_tags;
+DROP TABLE IF EXISTS tags;
 DROP TABLE IF EXISTS notes;
 DROP TABLE IF EXISTS folders;
 
@@ -84,8 +86,8 @@ INSERT INTO notes (title, content, folder_id) VALUES
   , NULL
   ); 
 
-INSERT INTO tags (name) VALUES ('test name'), ('test 2'), ('test 3');
-INSERT INTO notes_tags (note_id, tag_id) VALUES (1, 1), (2, 2);
+INSERT INTO tags (name) VALUES ('test name 1'), ('test 2'), ('test 3');
+INSERT INTO notes_tags (note_id, tag_id) VALUES (1, 1), (2, 2), (1,2), (1,3);
 
-
+ 
 
