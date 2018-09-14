@@ -98,29 +98,58 @@ router.get('/:id', (req, res, next) => {
 //Put update an item
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
+  const { title, content, folderId, tags = [] } = req.body;
 
   /***** Never trust users - validate input *****/
-  const updateObj = {};
-  const updateableFields = ['title', 'content'];
-
-  updateableFields.forEach(field => {
-    if (field in req.body) {
-      updateObj[field] = req.body[field];
-    }
-  });
-
-  /***** Never trust users - validate input *****/
-  if (!updateObj.title) {
+  if (!title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
 
+  const updateObj = {
+    title,
+    content,
+    folder_id: folderId ? folderId : null
+  };
+
   knex('notes')
-    .where({ id: `${id}` })
-    .update({ title: `${updateObj.title}`, content: `${updateObj.content}` })
-    .then(results => {
-      res.json(results);
+    .update(updateObj)
+    .where('id', id)
+    .then(() => {
+      return knex
+        .del()
+        .from('notes_tags')
+        .where('note_id', id);
+    })
+    .then(() => {
+      const tagsInsert = tags.map(tid => ({ note_id: id, tag_id: tid }));
+      return knex.insert(tagsInsert).into('notes_tags');
+    })
+    .then(() => {
+      knex
+        .select(
+          'notes.id',
+          'title',
+          'content',
+          'folder_id as folderId',
+          'folders.name as folderName',
+          'tags.id as tagId',
+          'tags.name as tagName'
+        )
+        .from('notes')
+        .leftJoin('folders', 'notes.folder_id', 'folders.id')
+        .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+        .leftJoin('tags', 'tags.id', 'notes_tags.tag_id')
+        .where('notes.id', id);
+    })
+    .then(result => {
+      if (result) {
+        const [hydrated] = hydrateNotes(result);
+        res.json(hydrated);
+      } else {
+        next();
+      }
     })
     .catch(err => {
       next(err);
@@ -129,7 +158,7 @@ router.put('/:id', (req, res, next) => {
 
 // Post (insert) an item
 router.post('/', (req, res, next) => {
-  const { title, content, folderId, tags } = req.body;
+  const { title, content, folderId, tags = [] } = req.body;
 
   const newItem = { title, content, folder_id: folderId };
   /***** Never trust users - validate input *****/
@@ -147,8 +176,9 @@ router.post('/', (req, res, next) => {
     .then(([id]) => {
       // Insert related tags into notes_tags table
       noteId = id;
+      console.log(tags);
 
-      const tagsInsert = JSON.parse(tags).map(tagId => ({
+      const tagsInsert = tags.map(tagId => ({
         note_id: noteId,
         tag_id: tagId
       }));
